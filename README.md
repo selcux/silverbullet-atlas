@@ -1,37 +1,72 @@
-# SilverBullet plug template
-Insert your plug description here. 
+# Atlas — Graph View for SilverBullet
 
-## Development preparation
-1. In your (development) space, create a folder under `Library/` that you can use as a namespace, for instance using your Github username:
-```bash
-mkdir -p ~/myspace/Library/you
+An interactive local knowledge graph that lives in the right panel. Shows the current page's direct connections (outlinks + backlinks) as a force-directed D3.js graph.
+
+## Features
+
+- **Auto-updates** on page navigation — graph recenters on the current page
+- **Click to navigate** — click any neighbor node to jump to that page
+- **Drag nodes** — reposition nodes, simulation reheats
+- **Zoom & pan** — scroll to zoom, drag background to pan
+- **Hover highlighting** — hover a node to highlight its connections, dim the rest
+- **Dark/light mode** — adapts to your SilverBullet theme
+
+## Install
+
+Run the **Library: Install** command in SilverBullet and use this URL:
+
+```
+https://github.com/selcukcihan/silverbullet-atlas/blob/main/PLUG.md
 ```
 
-2. Symlink this plug's folder into your namespaced folder:
+## Usage
 
-```bash
-ln -s $PWD ~/myspace/Library/you/hello
+Run the command: **Atlas: Toggle Graph View**
+
+This opens (or closes) the graph panel on the right side. The graph automatically updates as you navigate between pages.
+
+## Development
+
+### Prerequisites
+
+- [Deno](https://docs.deno.com/runtime/)
+
+### Setup
+
+1. Create a namespace folder in your space:
+   ```bash
+   mkdir -p ~/myspace/Library/Atlas
+   ```
+
+2. Symlink this repo into your space:
+   ```bash
+   ln -s $PWD ~/myspace/Library/Atlas
+   ```
+
+3. Build:
+   ```bash
+   deno task build
+   ```
+
+SilverBullet auto-syncs within ~20s. Run **Plugs: Reload** to activate.
+
+## Architecture
+
+```
+Web Worker (no DOM)              Panel iframe (has DOM)
+┌─────────────────────┐         ┌──────────────────────┐
+│  atlas.ts            │──JSON──▶│  d3.min.js           │
+│  ├─ toggleAtlas()    │         │  atlas-render.js     │
+│  ├─ updateGraph()    │◀─call───│  atlas-style.css     │
+│  └─ handleNavigate() │         │                      │
+│                      │         │  SVG force graph     │
+│  graph.ts            │         │  drag/zoom/click     │
+│  └─ buildLocalGraph()│         └──────────────────────┘
+│        ▼             │
+│  SB Index syscalls   │
+└─────────────────────┘
 ```
 
-3. Update the `name` attribute in `PLUG.md` to match the location of that PLUG file in your space, and the file name of the destination `.plug.js` file as well e.g.
-```
----
-name: Library/you/hello/PLUG
-tags: meta/library
-files:
-- myplug.plug.js
----
-```
+## License
 
-## Build
-To build this plug, make sure you have [Deno installed](https://docs.deno.com/runtime/). Then, build the plug with:
-
-```shell
-deno task build
-```
-
-Within ~20s SilverBullet will automatically sync your plug code, just watch your browser's JavaScript console to see when this happens. Then run the `Plugs: Reload` command to reload and reactivate the plug (no reload required).
-
-## Distribution
-1. Commit the compiled `.plug.js` file to the repository
-2. Other people can now install your plug via the `Library: Install` command using the URL to your PLUG.md file as URI, e.g. `https://github.com/silverbulletmd/silverbullet-plug-template/blob/main/PLUG.md`
+MIT

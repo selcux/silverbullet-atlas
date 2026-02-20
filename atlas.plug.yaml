@@ -1,0 +1,17 @@
+name: atlas
+assets:
+  - "assets/**/*.*"
+functions:
+  toggleAtlas:
+    path: atlas.ts:toggleAtlas
+    command:
+      name: "Atlas: Toggle Graph View"
+  updateGraph:
+    path: atlas.ts:updateGraph
+    events:
+      - editor:pageLoaded
+      - editor:pageReloaded
+  handleNavigate:
+    path: atlas.ts:handleNavigate
+    events:
+      - atlas:navigateTo

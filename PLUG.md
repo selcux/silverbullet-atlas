@@ -1,7 +1,7 @@
 ---
-name: Library/you/hello/PLUG
+name: Library/Atlas/PLUG
 tags: meta/library
 files:
-- hello.plug.js
+- atlas.plug.js
 ---
-This library does A, B and C.
+Interactive local knowledge graph view for SilverBullet. Shows linked pages as a force-directed graph in the right panel, auto-updating as you navigate.

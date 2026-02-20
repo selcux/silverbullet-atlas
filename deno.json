@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "build": "deno run -A https://github.com/silverbulletmd/silverbullet/releases/download/edge/plug-compile.js -c deno.json hello.plug.yaml"
+    "build": "deno run -A https://github.com/silverbulletmd/silverbullet/releases/download/edge/plug-compile.js -c deno.json atlas.plug.yaml"
   },
   "lint": {
     "rules": {
