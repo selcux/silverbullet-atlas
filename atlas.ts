@@ -3,7 +3,7 @@ import {
   clientStore,
   editor,
 } from "@silverbulletmd/silverbullet/syscalls";
-import { buildLocalGraph } from "./graph.ts";
+import { buildFullGraph } from "./graph.ts";
 
 const PLUG_NAME = "atlas";
 const STORE_KEY = "atlasEnabled";
@@ -33,7 +33,7 @@ export async function handleNavigate(pageName: string) {
 
 async function renderGraph() {
   const currentPage = await editor.getCurrentPage();
-  const graphData = await buildLocalGraph(currentPage);
+  const graphData = await buildFullGraph(currentPage);
   const isDark = await editor.getUiOption("darkMode");
 
   // Load assets

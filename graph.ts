@@ -16,6 +16,65 @@ export interface GraphData {
   edges: GraphEdge[];
 }
 
+export async function buildFullGraph(
+  currentPage: string,
+): Promise<GraphData> {
+  const nodeMap = new Map<string, GraphNode>();
+  const edgeSet = new Set<string>();
+  const edges: GraphEdge[] = [];
+
+  // Query ALL links — no where clause
+  const allLinks = await syscall("index.queryLuaObjects", "link", {
+    objectVariable: "l",
+  }, {});
+
+  for (const link of allLinks) {
+    const source = link.page;
+    const target = link.toPage;
+    if (!source || !target || !isPageLink(source) || !isPageLink(target)) {
+      continue;
+    }
+    if (isSystemPage(source) || isSystemPage(target)) continue;
+
+    // Ensure both nodes exist
+    if (!nodeMap.has(source)) {
+      nodeMap.set(source, {
+        id: source,
+        name: source,
+        isCurrent: source === currentPage,
+      });
+    }
+    if (!nodeMap.has(target)) {
+      nodeMap.set(target, {
+        id: target,
+        name: target,
+        isCurrent: target === currentPage,
+      });
+    }
+
+    // Deduplicate edges
+    const edgeKey = `${source}->${target}`;
+    if (!edgeSet.has(edgeKey)) {
+      edgeSet.add(edgeKey);
+      edges.push({ source, target });
+    }
+  }
+
+  // Ensure current page is always in the graph even if it has no links
+  if (!nodeMap.has(currentPage)) {
+    nodeMap.set(currentPage, {
+      id: currentPage,
+      name: currentPage,
+      isCurrent: true,
+    });
+  }
+
+  return {
+    nodes: Array.from(nodeMap.values()),
+    edges,
+  };
+}
+
 export async function buildLocalGraph(
   currentPage: string,
 ): Promise<GraphData> {
@@ -84,6 +143,14 @@ export async function buildLocalGraph(
     nodes: Array.from(nodeMap.values()),
     edges,
   };
+}
+
+/** Filter out system/internal pages */
+function isSystemPage(name: string): boolean {
+  if (/^(PLUGS|SETTINGS|CONFIG)$/.test(name)) return true;
+  if (name.startsWith("Library/")) return true;
+  if (name.startsWith("_")) return true;
+  return false;
 }
 
 /** Filter out non-page links (images, URLs, attachments) */

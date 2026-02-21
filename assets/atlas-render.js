@@ -73,7 +73,19 @@
     if (adjacency.has(edge.target)) adjacency.get(edge.target).add(edge.source);
   }
 
-  // --- Force simulation ---
+  // --- Degree map for scaling node size ---
+  const degree = new Map();
+  for (const node of data.nodes) degree.set(node.id, 0);
+  for (const edge of data.edges) {
+    degree.set(edge.source, (degree.get(edge.source) || 0) + 1);
+    degree.set(edge.target, (degree.get(edge.target) || 0) + 1);
+  }
+
+  // --- Force simulation (tuned for full graph) ---
+  const nodeCount = data.nodes.length;
+  const chargeStrength = nodeCount > 50 ? -80 : nodeCount > 20 ? -120 : -200;
+  const linkDistance = nodeCount > 50 ? 60 : nodeCount > 20 ? 70 : 80;
+
   const simulation = d3
     .forceSimulation(data.nodes)
     .force(
@@ -81,11 +93,13 @@
       d3
         .forceLink(data.edges)
         .id((d) => d.id)
-        .distance(80),
+        .distance(linkDistance),
     )
-    .force("charge", d3.forceManyBody().strength(-200))
+    .force("charge", d3.forceManyBody().strength(chargeStrength))
     .force("center", d3.forceCenter(width / 2, height / 2))
-    .force("collision", d3.forceCollide().radius(20))
+    .force("x", d3.forceX(width / 2).strength(0.05))
+    .force("y", d3.forceY(height / 2).strength(0.05))
+    .force("collision", d3.forceCollide().radius(15))
     .alphaDecay(0.02);
 
   // --- Edges ---
@@ -109,10 +123,14 @@
     .attr("class", "node-group")
     .style("cursor", "pointer");
 
-  // Circles
+  // Circles — radius scales with connection count
   node
     .append("circle")
-    .attr("r", (d) => (d.isCurrent ? 6 : 5))
+    .attr("r", (d) => {
+      const deg = degree.get(d.id) || 0;
+      const base = d.isCurrent ? 7 : 4;
+      return base + Math.min(deg, 10) * 0.4;
+    })
     .attr("fill", (d) => (d.isCurrent ? palette.currentNode : palette.neighborNode));
 
   // Labels — always outside the circle
