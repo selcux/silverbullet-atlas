@@ -11,6 +11,6 @@
     "exclude": ["*.md", "**/*.md", "*.plug.js"]
   },
   "imports": {
-    "@silverbulletmd/silverbullet": "jsr:@silverbulletmd/silverbullet@^2.3.0"
+    "@silverbulletmd/silverbullet": "jsr:@silverbulletmd/silverbullet@^2.4.1"
   }
 }
