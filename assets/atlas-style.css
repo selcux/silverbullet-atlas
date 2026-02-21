@@ -1,3 +1,30 @@
+:root,
+:root[data-theme="light"] {
+  --atlas-bg: #ffffff;
+  --atlas-node-current: #1e66f5;
+  --atlas-node-neighbor: #6c6f85;
+  --atlas-edge: #bcc0cc;
+  --atlas-edge-highlight: #1e66f5;
+  --atlas-label: #4c4f69;
+  --atlas-label-current: #ffffff;
+  --atlas-node-dim: #dce0e8;
+  --atlas-edge-dim: #dce0e8;
+  --atlas-label-dim: #bcc0cc;
+}
+
+:root[data-theme="dark"] {
+  --atlas-bg: #1e1e2e;
+  --atlas-node-current: #89b4fa;
+  --atlas-node-neighbor: #a6adc8;
+  --atlas-edge: #45475a;
+  --atlas-edge-highlight: #89b4fa;
+  --atlas-label: #cdd6f4;
+  --atlas-label-current: #1e1e2e;
+  --atlas-node-dim: #313244;
+  --atlas-edge-dim: #313244;
+  --atlas-label-dim: #585b70;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -15,6 +42,7 @@ html, body {
   width: 100%;
   height: 100vh;
   position: relative;
+  background-color: var(--atlas-bg);
 }
 
 #atlas-container svg {

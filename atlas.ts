@@ -34,7 +34,7 @@ export async function handleNavigate(pageName: string) {
 async function renderGraph() {
   const currentPage = await editor.getCurrentPage();
   const graphData = await buildFullGraph(currentPage);
-  const isDark = await editor.getUiOption("darkMode");
+  const isDark = !!(await editor.getUiOption("darkMode"));
 
   // Load assets
   const [d3Js, rendererJs, css] = await Promise.all([

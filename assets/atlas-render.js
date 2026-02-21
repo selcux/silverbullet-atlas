@@ -5,40 +5,38 @@
   "use strict";
 
   const data = window.__ATLAS_DATA__;
-  const isDark = window.__ATLAS_DARK__;
   if (!data || !data.nodes.length) return;
 
   const container = document.getElementById("atlas-container");
   if (!container) return;
 
-  // --- Color palette ---
-  const palette = isDark
-    ? {
-      bg: "#1e1e2e",
-      currentNode: "#89b4fa",
-      neighborNode: "#a6adc8",
-      edge: "#45475a",
-      edgeHighlight: "#89b4fa",
-      label: "#cdd6f4",
-      labelCurrent: "#1e1e2e",
-      dimNode: "#313244",
-      dimEdge: "#313244",
-      dimLabel: "#585b70",
-    }
-    : {
-      bg: "#ffffff",
-      currentNode: "#1e66f5",
-      neighborNode: "#6c6f85",
-      edge: "#bcc0cc",
-      edgeHighlight: "#1e66f5",
-      label: "#4c4f69",
-      labelCurrent: "#ffffff",
-      dimNode: "#dce0e8",
-      dimEdge: "#dce0e8",
-      dimLabel: "#bcc0cc",
-    };
+  // --- Color palette (reads CSS custom properties from atlas-style.css) ---
+  // SB's panel.tsx already sets data-theme on <html> via postMessage before our script runs.
+  // Fall back to __ATLAS_DARK__ (from getUiOption) or prefers-color-scheme if somehow missing.
+  const sbTheme = document.documentElement.getAttribute("data-theme");
+  const isDark = sbTheme
+    ? sbTheme === "dark"
+    : (window.__ATLAS_DARK__ ?? matchMedia("(prefers-color-scheme: dark)").matches);
+  console.log("[Atlas] theme:", sbTheme, "isDark:", isDark);
+  if (!sbTheme) {
+    document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+  }
 
-  container.style.backgroundColor = palette.bg;
+  const style = getComputedStyle(document.documentElement);
+  const v = (name) => style.getPropertyValue(name).trim();
+
+  const palette = {
+    bg: v("--atlas-bg"),
+    currentNode: v("--atlas-node-current"),
+    neighborNode: v("--atlas-node-neighbor"),
+    edge: v("--atlas-edge"),
+    edgeHighlight: v("--atlas-edge-highlight"),
+    label: v("--atlas-label"),
+    labelCurrent: v("--atlas-label-current"),
+    dimNode: v("--atlas-node-dim"),
+    dimEdge: v("--atlas-edge-dim"),
+    dimLabel: v("--atlas-label-dim"),
+  };
 
   // --- Dimensions ---
   const width = container.clientWidth || 300;
