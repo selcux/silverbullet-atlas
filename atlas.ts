@@ -2,7 +2,6 @@ import {
   asset,
   clientStore,
   editor,
-  system,
 } from "@silverbulletmd/silverbullet/syscalls";
 import { buildLocalGraph } from "./graph.ts";
 
@@ -10,10 +9,6 @@ const PLUG_NAME = "atlas";
 const STORE_KEY = "atlasEnabled";
 
 export async function toggleAtlas() {
-  // Only run client-side
-  const env = await system.getEnv();
-  if (env === "server") return;
-
   const enabled = await clientStore.get(STORE_KEY);
   if (enabled) {
     await clientStore.set(STORE_KEY, false);
@@ -25,9 +20,6 @@ export async function toggleAtlas() {
 }
 
 export async function updateGraph() {
-  const env = await system.getEnv();
-  if (env === "server") return;
-
   const enabled = await clientStore.get(STORE_KEY);
   if (!enabled) return;
 

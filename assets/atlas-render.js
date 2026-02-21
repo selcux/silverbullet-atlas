@@ -85,7 +85,7 @@
     )
     .force("charge", d3.forceManyBody().strength(-200))
     .force("center", d3.forceCenter(width / 2, height / 2))
-    .force("collision", d3.forceCollide().radius(30))
+    .force("collision", d3.forceCollide().radius(20))
     .alphaDecay(0.02);
 
   // --- Edges ---
@@ -112,21 +112,18 @@
   // Circles
   node
     .append("circle")
-    .attr("r", (d) => (d.isCurrent ? 12 : 8))
-    .attr("fill", (d) => (d.isCurrent ? palette.currentNode : palette.neighborNode))
-    .attr("stroke", (d) => (d.isCurrent ? palette.currentNode : "none"))
-    .attr("stroke-width", (d) => (d.isCurrent ? 2 : 0))
-    .attr("stroke-opacity", 0.3);
+    .attr("r", (d) => (d.isCurrent ? 6 : 5))
+    .attr("fill", (d) => (d.isCurrent ? palette.currentNode : palette.neighborNode));
 
-  // Labels
+  // Labels — always outside the circle
   node
     .append("text")
     .text((d) => truncate(d.name, 20))
-    .attr("dx", (d) => (d.isCurrent ? 0 : 14))
-    .attr("dy", (d) => (d.isCurrent ? 4 : 4))
-    .attr("text-anchor", (d) => (d.isCurrent ? "middle" : "start"))
-    .attr("fill", (d) => (d.isCurrent ? palette.labelCurrent : palette.label))
-    .attr("font-size", (d) => (d.isCurrent ? "11px" : "10px"))
+    .attr("dx", 10)
+    .attr("dy", 4)
+    .attr("text-anchor", "start")
+    .attr("fill", (d) => (d.isCurrent ? palette.currentNode : palette.label))
+    .attr("font-size", "10px")
     .attr("font-weight", (d) => (d.isCurrent ? "600" : "400"))
     .attr("font-family", "system-ui, -apple-system, sans-serif")
     .attr("paint-order", "stroke")
