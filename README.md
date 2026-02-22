@@ -30,6 +30,10 @@ Run the command: **Atlas: Toggle Graph View**
 
 This opens (or closes) the graph panel on the right side. The graph automatically updates as you navigate between pages.
 
+## Known Issues
+
+- **Script-generated links not shown** — Links produced dynamically by Space Lua templates (e.g. `${string.format("[[Journal/%s|Today's Journal]]", os.date("%Y-%m-%d"))}`) are not included in the graph. The SilverBullet index only tracks statically written wikilinks.
+
 ## Development
 
 ### Prerequisites
