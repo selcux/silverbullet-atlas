@@ -86,7 +86,3 @@ All colors are defined as CSS custom properties in `atlas-style.css`, keyed by `
 | `--atlas-edge` / `--atlas-edge-highlight` | Edge default / hover |
 | `--atlas-label` / `--atlas-label-current` | Label text |
 | `--atlas-node-dim` / `--atlas-edge-dim` / `--atlas-label-dim` | Dimmed on hover |
-
-## License
-
-MIT
