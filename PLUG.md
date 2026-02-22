@@ -1,6 +1,7 @@
 ---
 name: Library/Atlas/PLUG
 tags: meta/library
+version: 1.1.0
 files:
 - atlas.plug.js
 ---
