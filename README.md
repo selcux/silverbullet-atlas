@@ -14,6 +14,8 @@ An interactive knowledge graph that lives in the right panel. Shows **all pages 
 - **Zoom & pan** — scroll to zoom, drag background to pan
 - **Hover highlighting** — hover a node to highlight its connections, dim the rest
 - **Adaptive node sizing** — nodes scale with connection count
+- **Orphan page detection** — surfaces pages with zero wikilinks (toggled via toolbar)
+- **Toolbar** — header bar with toggle buttons for graph options
 - **Dark/light mode** — follows SilverBullet's theme automatically
 
 ## Install
@@ -29,6 +31,8 @@ https://github.com/selcux/silverbullet-atlas/blob/main/PLUG.md
 Run the command: **Atlas: Toggle Graph View**
 
 This opens (or closes) the graph panel on the right side. The graph automatically updates as you navigate between pages.
+
+The toolbar at the top of the panel lets you toggle **Orphans** — pages with no incoming or outgoing links. Your preference persists across sessions.
 
 ## Known Issues
 
@@ -65,10 +69,12 @@ Web Worker (no DOM)              Panel iframe (has DOM)
 │  atlas.ts            │──JSON──▶│  d3.min.js           │
 │  ├─ toggleAtlas()    │         │  atlas-render.js     │
 │  ├─ updateGraph()    │◀─call───│  atlas-style.css     │
-│  └─ handleNavigate() │         │                      │
-│                      │         │  SVG force graph     │
-│  graph.ts            │         │  drag/zoom/click     │
-│  └─ buildFullGraph() │         └──────────────────────┘
+│  ├─ handleNavigate() │         │                      │
+│  └─ setOption()      │         │  Toolbar + SVG graph │
+│                      │         │  drag/zoom/click     │
+│  graph.ts            │         └──────────────────────┘
+│  ├─ buildFullGraph() │
+│  └─ queryAllPages()  │
 │        ▼             │
 │  SB Index syscalls   │
 └─────────────────────┘
@@ -89,4 +95,8 @@ All colors are defined as CSS custom properties in `atlas-style.css`, keyed by `
 | `--atlas-node-neighbor` | Other nodes |
 | `--atlas-edge` / `--atlas-edge-highlight` | Edge default / hover |
 | `--atlas-label` / `--atlas-label-current` | Label text |
+| `--atlas-node-orphan` | Orphan node fill + stroke |
 | `--atlas-node-dim` / `--atlas-edge-dim` / `--atlas-label-dim` | Dimmed on hover |
+| `--atlas-toolbar-bg` | Toolbar background |
+| `--atlas-toolbar-border` | Toolbar bottom border |
+| `--atlas-btn-hover` / `--atlas-btn-active` | Button states |

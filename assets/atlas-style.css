@@ -3,6 +3,7 @@
   --atlas-bg: #ffffff;
   --atlas-node-current: #1e66f5;
   --atlas-node-neighbor: #6c6f85;
+  --atlas-node-orphan: #8839ef;
   --atlas-edge: #bcc0cc;
   --atlas-edge-highlight: #1e66f5;
   --atlas-label: #4c4f69;
@@ -10,12 +11,19 @@
   --atlas-node-dim: #dce0e8;
   --atlas-edge-dim: #dce0e8;
   --atlas-label-dim: #bcc0cc;
+  --atlas-toolbar-bg: #f2f4f7;
+  --atlas-toolbar-border: #dce0e8;
+  --atlas-btn-hover: #e6e9ef;
+  --atlas-btn-active: #1e66f5;
+  --atlas-btn-active-text: #ffffff;
+  --atlas-btn-text: #4c4f69;
 }
 
 :root[data-theme="dark"] {
   --atlas-bg: #1e1e2e;
   --atlas-node-current: #89b4fa;
   --atlas-node-neighbor: #a6adc8;
+  --atlas-node-orphan: #f5c2e7;
   --atlas-edge: #45475a;
   --atlas-edge-highlight: #89b4fa;
   --atlas-label: #cdd6f4;
@@ -23,6 +31,12 @@
   --atlas-node-dim: #313244;
   --atlas-edge-dim: #313244;
   --atlas-label-dim: #585b70;
+  --atlas-toolbar-bg: #181825;
+  --atlas-toolbar-border: #313244;
+  --atlas-btn-hover: #313244;
+  --atlas-btn-active: #89b4fa;
+  --atlas-btn-active-text: #1e1e2e;
+  --atlas-btn-text: #cdd6f4;
 }
 
 * {
@@ -36,11 +50,51 @@ html, body {
   height: 100%;
   overflow: hidden;
   font-family: system-ui, -apple-system, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+#atlas-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 4px 8px;
+  background-color: var(--atlas-toolbar-bg);
+  border-bottom: 1px solid var(--atlas-toolbar-border);
+  flex-shrink: 0;
+}
+
+.atlas-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--atlas-btn-text);
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.atlas-btn:hover {
+  background-color: var(--atlas-btn-hover);
+}
+
+.atlas-btn.active {
+  background-color: var(--atlas-btn-active);
+  color: var(--atlas-btn-active-text);
+}
+
+.atlas-btn svg {
+  flex-shrink: 0;
 }
 
 #atlas-container {
   width: 100%;
-  height: 100vh;
+  flex: 1;
+  min-height: 0;
   position: relative;
   background-color: var(--atlas-bg);
 }

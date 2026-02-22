@@ -4,6 +4,7 @@ export interface GraphNode {
   id: string;
   name: string;
   isCurrent: boolean;
+  isOrphan: boolean;
 }
 
 export interface GraphEdge {
@@ -18,6 +19,7 @@ export interface GraphData {
 
 export async function buildFullGraph(
   currentPage: string,
+  includeOrphans = false,
 ): Promise<GraphData> {
   const nodeMap = new Map<string, GraphNode>();
   const edgeSet = new Set<string>();
@@ -42,6 +44,7 @@ export async function buildFullGraph(
         id: source,
         name: source,
         isCurrent: source === currentPage,
+        isOrphan: false,
       });
     }
     if (!nodeMap.has(target)) {
@@ -49,6 +52,7 @@ export async function buildFullGraph(
         id: target,
         name: target,
         isCurrent: target === currentPage,
+        isOrphan: false,
       });
     }
 
@@ -66,13 +70,44 @@ export async function buildFullGraph(
       id: currentPage,
       name: currentPage,
       isCurrent: true,
+      isOrphan: false,
     });
+  }
+
+  // Add orphan pages (pages with zero links)
+  if (includeOrphans) {
+    const allPages = await queryAllPages();
+    for (const pageName of allPages) {
+      if (!nodeMap.has(pageName)) {
+        nodeMap.set(pageName, {
+          id: pageName,
+          name: pageName,
+          isCurrent: pageName === currentPage,
+          isOrphan: true,
+        });
+      }
+    }
   }
 
   return {
     nodes: Array.from(nodeMap.values()),
     edges,
   };
+}
+
+/** Query all content pages, filtering out system pages and non-page entries */
+async function queryAllPages(): Promise<Set<string>> {
+  const allPages = await syscall("index.queryLuaObjects", "page", {
+    objectVariable: "p",
+  }, {});
+
+  const pageNames = new Set<string>();
+  for (const page of allPages) {
+    const name = page.name ?? page.ref;
+    if (!name || !isPageLink(name) || isSystemPage(name)) continue;
+    pageNames.add(name);
+  }
+  return pageNames;
 }
 
 export async function buildLocalGraph(
@@ -87,6 +122,7 @@ export async function buildLocalGraph(
     id: currentPage,
     name: currentPage,
     isCurrent: true,
+    isOrphan: false,
   });
 
   // Query outgoing links: pages linked FROM currentPage
@@ -104,7 +140,7 @@ export async function buildLocalGraph(
     if (!target || !isPageLink(target)) continue;
 
     if (!nodeMap.has(target)) {
-      nodeMap.set(target, { id: target, name: target, isCurrent: false });
+      nodeMap.set(target, { id: target, name: target, isCurrent: false, isOrphan: false });
     }
 
     const edgeKey = `${currentPage}->${target}`;
@@ -129,7 +165,7 @@ export async function buildLocalGraph(
     if (!source || !isPageLink(source)) continue;
 
     if (!nodeMap.has(source)) {
-      nodeMap.set(source, { id: source, name: source, isCurrent: false });
+      nodeMap.set(source, { id: source, name: source, isCurrent: false, isOrphan: false });
     }
 
     const edgeKey = `${source}->${currentPage}`;

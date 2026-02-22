@@ -1,18 +1,19 @@
 // Atlas graph renderer — runs inside the panel iframe
 // Expects: window.__ATLAS_DATA__ = { nodes: [...], edges: [...] }
 //          window.__ATLAS_DARK__ = boolean
+//          window.__ATLAS_OPTIONS__ = { showOrphans: boolean }
 (function () {
   "use strict";
 
   const data = window.__ATLAS_DATA__;
   if (!data || !data.nodes.length) return;
 
+  const options = window.__ATLAS_OPTIONS__ || { showOrphans: false };
+
   const container = document.getElementById("atlas-container");
   if (!container) return;
 
-  // --- Color palette (reads CSS custom properties from atlas-style.css) ---
-  // SB's panel.tsx already sets data-theme on <html> via postMessage before our script runs.
-  // Fall back to __ATLAS_DARK__ (from getUiOption) or prefers-color-scheme if somehow missing.
+  // --- Theme detection ---
   const sbTheme = document.documentElement.getAttribute("data-theme");
   const isDark = sbTheme
     ? sbTheme === "dark"
@@ -29,6 +30,7 @@
     bg: v("--atlas-bg"),
     currentNode: v("--atlas-node-current"),
     neighborNode: v("--atlas-node-neighbor"),
+    orphanNode: v("--atlas-node-orphan"),
     edge: v("--atlas-edge"),
     edgeHighlight: v("--atlas-edge-highlight"),
     label: v("--atlas-label"),
@@ -37,6 +39,24 @@
     dimEdge: v("--atlas-edge-dim"),
     dimLabel: v("--atlas-label-dim"),
   };
+
+  // --- Toolbar ---
+  const toolbar = document.getElementById("atlas-toolbar");
+  if (toolbar) {
+    const orphanBtn = document.createElement("button");
+    orphanBtn.className = "atlas-btn" + (options.showOrphans ? " active" : "");
+    orphanBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="8" cy="8" r="6" stroke-dasharray="3,2"/>
+    </svg><span>Orphans</span>`;
+    orphanBtn.addEventListener("click", () => {
+      options.showOrphans = !options.showOrphans;
+      orphanBtn.classList.toggle("active", options.showOrphans);
+      toggleOrphanVisibility(options.showOrphans);
+      // Fire-and-forget persist to worker
+      syscall("system.invokeFunction", "atlas.setOption", "showOrphans", options.showOrphans);
+    });
+    toolbar.appendChild(orphanBtn);
+  }
 
   // --- Dimensions ---
   const width = container.clientWidth || 300;
@@ -118,18 +138,26 @@
     .selectAll("g")
     .data(data.nodes)
     .join("g")
-    .attr("class", "node-group")
+    .attr("class", (d) => "node-group" + (d.isOrphan ? " orphan" : ""))
     .style("cursor", "pointer");
 
-  // Circles — radius scales with connection count
+  // Circles — radius scales with connection count; orphans are smaller
   node
     .append("circle")
     .attr("r", (d) => {
+      if (d.isOrphan) return 3;
       const deg = degree.get(d.id) || 0;
       const base = d.isCurrent ? 7 : 4;
       return base + Math.min(deg, 10) * 0.4;
     })
-    .attr("fill", (d) => (d.isCurrent ? palette.currentNode : palette.neighborNode));
+    .attr("fill", (d) => {
+      if (d.isOrphan) return palette.orphanNode;
+      return d.isCurrent ? palette.currentNode : palette.neighborNode;
+    })
+    .attr("fill-opacity", (d) => d.isOrphan ? 0.4 : 1)
+    .attr("stroke", (d) => d.isOrphan ? palette.orphanNode : "none")
+    .attr("stroke-width", (d) => d.isOrphan ? 1.5 : 0)
+    .attr("stroke-dasharray", (d) => d.isOrphan ? "2,2" : "none");
 
   // Labels — always outside the circle
   node
@@ -138,13 +166,36 @@
     .attr("dx", 10)
     .attr("dy", 4)
     .attr("text-anchor", "start")
-    .attr("fill", (d) => (d.isCurrent ? palette.currentNode : palette.label))
+    .attr("fill", (d) => {
+      if (d.isOrphan) return palette.orphanNode;
+      return d.isCurrent ? palette.currentNode : palette.label;
+    })
+    .attr("fill-opacity", (d) => d.isOrphan ? 0.6 : 1)
     .attr("font-size", "10px")
     .attr("font-weight", (d) => (d.isCurrent ? "600" : "400"))
     .attr("font-family", "system-ui, -apple-system, sans-serif")
     .attr("paint-order", "stroke")
     .attr("stroke", palette.bg)
     .attr("stroke-width", 3);
+
+  // --- Orphan visibility ---
+  function toggleOrphanVisibility(show) {
+    const orphans = node.filter((d) => d.isOrphan);
+    orphans
+      .transition()
+      .duration(300)
+      .style("opacity", show ? 1 : 0)
+      .on("end", function () {
+        d3.select(this).style("pointer-events", show ? "auto" : "none");
+      });
+    // Reheat simulation so orphans settle naturally when shown
+    if (show) {
+      simulation.alpha(0.3).restart();
+    }
+  }
+
+  // Apply initial orphan visibility
+  toggleOrphanVisibility(options.showOrphans);
 
   // --- Drag behavior ---
   const drag = d3
@@ -177,7 +228,7 @@
       const neighbors = adjacency.get(d.id) || new Set();
 
       node.select("circle").attr("fill", (n) => {
-        if (n.id === d.id) return palette.currentNode;
+        if (n.id === d.id) return n.isOrphan ? palette.orphanNode : palette.currentNode;
         if (neighbors.has(n.id)) {
           return n.isCurrent ? palette.currentNode : palette.neighborNode;
         }
@@ -185,7 +236,7 @@
       });
 
       node.select("text").attr("fill", (n) => {
-        if (n.id === d.id) return n.isCurrent ? palette.labelCurrent : palette.label;
+        if (n.id === d.id) return n.isCurrent ? palette.labelCurrent : (n.isOrphan ? palette.orphanNode : palette.label);
         if (neighbors.has(n.id)) {
           return n.isCurrent ? palette.labelCurrent : palette.label;
         }
@@ -209,15 +260,17 @@
     .on("mouseleave", () => {
       node
         .select("circle")
-        .attr("fill", (n) =>
-          n.isCurrent ? palette.currentNode : palette.neighborNode
-        );
+        .attr("fill", (n) => {
+          if (n.isOrphan) return palette.orphanNode;
+          return n.isCurrent ? palette.currentNode : palette.neighborNode;
+        });
 
       node
         .select("text")
-        .attr("fill", (n) =>
-          n.isCurrent ? palette.labelCurrent : palette.label
-        );
+        .attr("fill", (n) => {
+          if (n.isOrphan) return palette.orphanNode;
+          return n.isCurrent ? palette.labelCurrent : palette.label;
+        });
 
       link.attr("stroke", palette.edge).attr("stroke-width", 1.5);
     });

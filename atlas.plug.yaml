@@ -15,3 +15,5 @@ functions:
     path: atlas.ts:handleNavigate
     events:
       - atlas:navigateTo
+  setOption:
+    path: atlas.ts:setOption
