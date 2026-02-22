@@ -21,7 +21,7 @@ An interactive knowledge graph that lives in the right panel. Shows **all pages 
 Run the **Library: Install** command in SilverBullet and use this URL:
 
 ```txt
-https://github.com/selcukcihan/silverbullet-atlas/blob/main/PLUG.md
+https://github.com/selcux/silverbullet-atlas/blob/main/PLUG.md
 ```
 
 ## Usage
