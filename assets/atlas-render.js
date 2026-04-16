@@ -197,13 +197,67 @@
   // Apply initial orphan visibility
   toggleOrphanVisibility(options.showOrphans);
 
-  // --- Drag behavior ---
+  // --- Highlight helpers (shared by hover and drag) ---
+  function highlightNode(d) {
+    const neighbors = adjacency.get(d.id) || new Set();
+
+    node.select("circle").attr("fill", (n) => {
+      if (n.id === d.id) return n.isOrphan ? palette.orphanNode : palette.currentNode;
+      if (neighbors.has(n.id)) {
+        return n.isCurrent ? palette.currentNode : palette.neighborNode;
+      }
+      return palette.dimNode;
+    });
+
+    node.select("text").attr("fill", (n) => {
+      if (n.id === d.id) return n.isCurrent ? palette.labelCurrent : (n.isOrphan ? palette.orphanNode : palette.label);
+      if (neighbors.has(n.id)) {
+        return n.isCurrent ? palette.labelCurrent : palette.label;
+      }
+      return palette.dimLabel;
+    });
+
+    link
+      .attr("stroke", (l) => {
+        const src = typeof l.source === "object" ? l.source.id : l.source;
+        const tgt = typeof l.target === "object" ? l.target.id : l.target;
+        if (src === d.id || tgt === d.id) return palette.edgeHighlight;
+        return palette.dimEdge;
+      })
+      .attr("stroke-width", (l) => {
+        const src = typeof l.source === "object" ? l.source.id : l.source;
+        const tgt = typeof l.target === "object" ? l.target.id : l.target;
+        if (src === d.id || tgt === d.id) return 2.5;
+        return 1.5;
+      });
+  }
+
+  function clearHighlight() {
+    node
+      .select("circle")
+      .attr("fill", (n) => {
+        if (n.isOrphan) return palette.orphanNode;
+        return n.isCurrent ? palette.currentNode : palette.neighborNode;
+      });
+
+    node
+      .select("text")
+      .attr("fill", (n) => {
+        if (n.isOrphan) return palette.orphanNode;
+        return n.isCurrent ? palette.labelCurrent : palette.label;
+      });
+
+    link.attr("stroke", palette.edge).attr("stroke-width", 1.5);
+  }
+
+  // --- Drag behavior (highlights connections on touch drag) ---
   const drag = d3
     .drag()
     .on("start", (event, d) => {
       if (!event.active) simulation.alphaTarget(0.3).restart();
       d.fx = d.x;
       d.fy = d.y;
+      highlightNode(d);
     })
     .on("drag", (event, d) => {
       d.fx = event.x;
@@ -213,6 +267,7 @@
       if (!event.active) simulation.alphaTarget(0);
       d.fx = null;
       d.fy = null;
+      clearHighlight();
     });
   node.call(drag);
 
@@ -225,54 +280,10 @@
   // --- Hover highlighting ---
   node
     .on("mouseenter", (_event, d) => {
-      const neighbors = adjacency.get(d.id) || new Set();
-
-      node.select("circle").attr("fill", (n) => {
-        if (n.id === d.id) return n.isOrphan ? palette.orphanNode : palette.currentNode;
-        if (neighbors.has(n.id)) {
-          return n.isCurrent ? palette.currentNode : palette.neighborNode;
-        }
-        return palette.dimNode;
-      });
-
-      node.select("text").attr("fill", (n) => {
-        if (n.id === d.id) return n.isCurrent ? palette.labelCurrent : (n.isOrphan ? palette.orphanNode : palette.label);
-        if (neighbors.has(n.id)) {
-          return n.isCurrent ? palette.labelCurrent : palette.label;
-        }
-        return palette.dimLabel;
-      });
-
-      link
-        .attr("stroke", (l) => {
-          const src = typeof l.source === "object" ? l.source.id : l.source;
-          const tgt = typeof l.target === "object" ? l.target.id : l.target;
-          if (src === d.id || tgt === d.id) return palette.edgeHighlight;
-          return palette.dimEdge;
-        })
-        .attr("stroke-width", (l) => {
-          const src = typeof l.source === "object" ? l.source.id : l.source;
-          const tgt = typeof l.target === "object" ? l.target.id : l.target;
-          if (src === d.id || tgt === d.id) return 2.5;
-          return 1.5;
-        });
+      highlightNode(d);
     })
     .on("mouseleave", () => {
-      node
-        .select("circle")
-        .attr("fill", (n) => {
-          if (n.isOrphan) return palette.orphanNode;
-          return n.isCurrent ? palette.currentNode : palette.neighborNode;
-        });
-
-      node
-        .select("text")
-        .attr("fill", (n) => {
-          if (n.isOrphan) return palette.orphanNode;
-          return n.isCurrent ? palette.labelCurrent : palette.label;
-        });
-
-      link.attr("stroke", palette.edge).attr("stroke-width", 1.5);
+      clearHighlight();
     });
 
   // --- Tick ---
