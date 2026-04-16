@@ -211,8 +211,6 @@
     })
     .on("end", (event, d) => {
       if (!event.active) simulation.alphaTarget(0);
-      d.fx = null;
-      d.fy = null;
     });
   node.call(drag);
 
