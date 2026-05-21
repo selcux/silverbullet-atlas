@@ -236,9 +236,9 @@
       });
 
       node.select("text").attr("fill", (n) => {
-        if (n.id === d.id) return n.isCurrent ? palette.labelCurrent : (n.isOrphan ? palette.orphanNode : palette.label);
+        if (n.id === d.id) return n.isCurrent ? palette.currentNode : (n.isOrphan ? palette.orphanNode : palette.label);
         if (neighbors.has(n.id)) {
-          return n.isCurrent ? palette.labelCurrent : palette.label;
+          return n.isCurrent ? palette.currentNode : palette.label;
         }
         return palette.dimLabel;
       });
@@ -269,7 +269,7 @@
         .select("text")
         .attr("fill", (n) => {
           if (n.isOrphan) return palette.orphanNode;
-          return n.isCurrent ? palette.labelCurrent : palette.label;
+          return n.isCurrent ? palette.currentNode : palette.label;
         });
 
       link.attr("stroke", palette.edge).attr("stroke-width", 1.5);
