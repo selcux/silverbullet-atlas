@@ -178,6 +178,21 @@
     .attr("stroke", palette.bg)
     .attr("stroke-width", 3);
 
+  // Touch hit area — invisible larger target for easier tapping on mobile
+  const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  if (isTouch) {
+    node
+      .append("circle")
+      .attr("r", (d) => {
+        if (d.isOrphan) return 9;
+        const deg = degree.get(d.id) || 0;
+        const base = d.isCurrent ? 7 : 4;
+        return Math.max(20, (base + Math.min(deg, 10) * 0.4) * 3);
+      })
+      .attr("fill", "none")
+      .attr("pointer-events", "all");
+  }
+
   // --- Orphan visibility ---
   function toggleOrphanVisibility(show) {
     const orphans = node.filter((d) => d.isOrphan);
