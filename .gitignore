@@ -1,3 +1,3 @@
-deno.lock
+node_modules/
+*.map
 .vscode/
-atlas.plug.js.map

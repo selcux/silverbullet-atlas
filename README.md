@@ -42,7 +42,7 @@ The toolbar at the top of the panel lets you toggle **Orphans** — pages with n
 
 ### Prerequisites
 
-- [Deno](https://docs.deno.com/runtime/)
+- [Node.js](https://nodejs.org/)
 
 ### Setup
 
@@ -52,10 +52,11 @@ The toolbar at the top of the panel lets you toggle **Orphans** — pages with n
    mkdir -p ~/myspace/Library/Atlas
    ```
 
-2. Build and copy:
+2. Install dependencies, build, and copy:
 
    ```bash
-   deno task build
+   npm install
+   npm run build
    cp atlas.plug.js ~/myspace/Library/Atlas/
    ```
 
