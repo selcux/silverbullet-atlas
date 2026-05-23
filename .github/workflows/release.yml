@@ -54,8 +54,8 @@ jobs:
           git commit -m "Release $VERSION [skip ci]"
           git push origin main
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            git tag "v$VERSION"
-            git push origin "v$VERSION"
+            git tag -f "v$VERSION"
+            git push origin "v$VERSION" --force
           fi
 
       - name: Create GitHub Release
