@@ -17,7 +17,11 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        run: |
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git .
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - uses: actions/setup-node@v4
         with:
@@ -46,11 +50,9 @@ jobs:
 
       - name: Commit version bump and artifact
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add PLUG.md package.json package-lock.json atlas.plug.js
           git commit -m "Release $VERSION [skip ci]"
-          git push origin HEAD:main
+          git push origin main
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
