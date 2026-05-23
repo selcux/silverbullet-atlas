@@ -53,9 +53,14 @@ jobs:
           git add PLUG.md package.json package-lock.json atlas.plug.js
           git commit -m "Release $VERSION [skip ci]"
           git push origin main
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            git tag "v$VERSION"
+            git push origin "v$VERSION"
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ env.VERSION }}
           generate_release_notes: true
           files: atlas.plug.js
